@@ -51,7 +51,8 @@ func (suite *InstanceMapperTestSuite) TestFields() {
 	myTable := &MyTable{}
 	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(myTable)
 
-	assert.Equal(suite.T(), []interface{}{&myTable.Id, &myTable.Value}, mapper.FieldPointers())
+	assert.Equal(suite.T(), []interface{}{myTable.Id, myTable.Value}, mapper.FieldValues())
+	assert.Equal(suite.T(), []interface{}{&myTable.Id, &myTable.Value}, mapper.FieldAddresses())
 }
 
 func TestInstanceMapper(t *testing.T) {
@@ -75,5 +76,6 @@ func (suite *InstanceMapperTestSuite) TestFieldEmbedding() {
 	}
 
 	assert.Equal(suite.T(), []string{"inner", "outer"}, mapper.ColumnNames())
-	assert.Equal(suite.T(), []interface{}{&outerStruct.Inner, &outerStruct.Outer}, mapper.FieldPointers())
+	assert.Equal(suite.T(), []interface{}{outerStruct.Inner, outerStruct.Outer}, mapper.FieldValues())
+	assert.Equal(suite.T(), []interface{}{&outerStruct.Inner, &outerStruct.Outer}, mapper.FieldAddresses())
 }

@@ -80,27 +80,27 @@ func (suite *ExamplesSuite) executeTemplate(tmpl *template.Template) {
 	}
 }
 
-func (suite *ExamplesSuite) TestMapper_SelectQuery() {
+func (suite *ExamplesSuite) TestInstanceMapper_SelectQuery() {
 	exampleTable := &ExampleTable{}
 	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(exampleTable)
 
 	query := suite.session.Query(mapper.SelectQuery())
 
-	if scanErr := query.Scan(mapper.FieldPointers()...); nil != scanErr {
+	if scanErr := query.Scan(mapper.FieldAddresses()...); nil != scanErr {
 		panic(scanErr.Error())
 	}
 
 	assert.Equal(suite.T(), "Test", exampleTable.Value)
 }
 
-func (suite *ExamplesSuite) ExampleInstanceMapper_InsertQuery() {
+func (suite *ExamplesSuite) TestInstanceMapper_InsertQuery() {
 	exampleTable := &ExampleTable{
 		Id: gocql.TimeUUID(),
 	}
 
 	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(exampleTable)
 
-	insertQuery := suite.session.Query(mapper.InsertQuery(), mapper.FieldPointers())
+	insertQuery := suite.session.Query(mapper.InsertQuery(), mapper.FieldValues()...)
 
 	if execErr := insertQuery.Exec(); nil != execErr {
 		panic(execErr.Error())

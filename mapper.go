@@ -72,16 +72,28 @@ func (mapper *InstanceMapper) ColumnNames() []string {
 	return columnNames
 }
 
-func (mapper *InstanceMapper) FieldPointers() []interface{} {
+func (mapper *InstanceMapper) FieldValues() []interface{} {
 	fieldNames := mapper.fieldNames()
-	fieldInterfaces := make([]interface{}, len(fieldNames))
+	fieldValues := make([]interface{}, len(fieldNames))
 
 	for fieldIndex, fieldName := range fieldNames {
 		field := mapper.elem.FieldByName(fieldName)
-		fieldInterfaces[fieldIndex] = field.Addr().Interface()
+		fieldValues[fieldIndex] = field.Interface()
 	}
 
-	return fieldInterfaces
+	return fieldValues
+}
+
+func (mapper *InstanceMapper) FieldAddresses() []interface{} {
+	fieldNames := mapper.fieldNames()
+	fieldAddresses := make([]interface{}, len(fieldNames))
+
+	for fieldIndex, fieldName := range fieldNames {
+		field := mapper.elem.FieldByName(fieldName)
+		fieldAddresses[fieldIndex] = field.Addr().Interface()
+	}
+
+	return fieldAddresses
 }
 
 func (mapper *InstanceMapper) SelectQuery() string {
