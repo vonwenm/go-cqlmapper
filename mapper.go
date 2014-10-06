@@ -31,16 +31,24 @@ func (mapper *InstanceMapper) typeName() string {
 	return mapper.elem.Type().Name()
 }
 
-func (mapper *InstanceMapper) fieldNames() []string {
-	valueType := mapper.elem.Type()
-	fieldNames := make([]string, valueType.NumField())
-
+func typeFieldNames(valueType reflect.Type) []string {
+	fieldNames := make([]string, 0)
 	for fieldIndex := 0; fieldIndex < valueType.NumField(); fieldIndex++ {
 		field := valueType.Field(fieldIndex)
-		fieldNames[fieldIndex] = field.Name
+		println(field.Type.Name())
+		if field.Type.Name() == field.Name {
+			fieldNames = append(fieldNames, typeFieldNames(field.Type)...)
+		} else {
+			fieldNames = append(fieldNames, field.Name)
+		}
 	}
 
 	return fieldNames
+}
+
+func (mapper *InstanceMapper) fieldNames() []string {
+	valueType := mapper.elem.Type()
+	return typeFieldNames(valueType)
 }
 
 func (mapper *InstanceMapper) TableName() string {
@@ -66,11 +74,12 @@ func (mapper *InstanceMapper) ColumnNames() []string {
 }
 
 func (mapper *InstanceMapper) FieldPointers() []interface{} {
-	fieldInterfaces := make([]interface{}, mapper.elem.NumField())
+	fieldNames := mapper.fieldNames()
+	fieldInterfaces := make([]interface{}, len(fieldNames))
 
-	for i := 0; i < mapper.elem.NumField(); i++ {
-		field := mapper.elem.Field(i)
-		fieldInterfaces[i] = field.Addr().Interface()
+	for fieldIndex, fieldName := range fieldNames {
+		field := mapper.elem.FieldByName(fieldName)
+		fieldInterfaces[fieldIndex] = field.Addr().Interface()
 	}
 
 	return fieldInterfaces

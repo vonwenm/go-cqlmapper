@@ -57,3 +57,23 @@ func (suite *InstanceMapperTestSuite) TestFields() {
 func TestInstanceMapper(t *testing.T) {
 	suite.Run(t, new(InstanceMapperTestSuite))
 }
+
+type InnerStruct struct {
+	Inner string
+}
+
+type OuterStruct struct {
+	InnerStruct
+	Outer string
+}
+
+func (suite *InstanceMapperTestSuite) TestFieldEmbedding() {
+	outerStruct := &OuterStruct{}
+	mapper, mapperErr := cqlmapper.Underscore.NewInstanceMapper(outerStruct)
+	if nil != mapperErr {
+		suite.T().Error(mapperErr)
+	}
+
+	assert.Equal(suite.T(), []string{"inner", "outer"}, mapper.ColumnNames())
+	assert.Equal(suite.T(), []interface{}{&outerStruct.Inner, &outerStruct.Outer}, mapper.FieldPointers())
+}
