@@ -1,6 +1,7 @@
 package cqlmapper_test
 
 import (
+	"fmt"
 	"os/exec"
 	"testing"
 	"text/template"
@@ -25,8 +26,8 @@ var upTemplate = template.Must(template.New("up").Parse(`
 DROP KEYSPACE IF EXISTS {{.Keyspace}};
 CREATE KEYSPACE IF NOT EXISTS {{.Keyspace}} WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
 USE {{.Keyspace}};
-CREATE TABLE IF NOT EXISTS example_table(id UUID, value TEXT, PRIMARY KEY(id));
-INSERT INTO example_table(id, value) VALUES(uuid(), 'Test');
+CREATE TABLE IF NOT EXISTS example_table(id UUID, value TEXT, value2 INT, PRIMARY KEY(id));
+INSERT INTO example_table(id, value, value2) VALUES({{.Id}}, 'Test', 123);
 `))
 
 var downTempalate = template.Must(template.New("down").Parse(`
@@ -34,16 +35,19 @@ DROP KEYSPACE IF EXISTS {{.Keyspace}};
 `))
 
 type ExampleTable struct {
-	Id    gocql.UUID
-	Value string
+	Id     gocql.UUID
+	Value  string
+	Value2 int
 }
 
 type ExamplesSuite struct {
 	suite.Suite
 	session *gocql.Session
+	id      gocql.UUID
 }
 
 func (suite *ExamplesSuite) SetupSuite() {
+	suite.id = gocql.TimeUUID()
 	suite.executeTemplate(upTemplate)
 
 	cluster := gocql.NewCluster(cassandraConfig.Hosts...)
@@ -67,16 +71,25 @@ func (suite *ExamplesSuite) executeTemplate(tmpl *template.Template) {
 		panic(inPipeErr.Error())
 	}
 
-	go func() {
-		if renderErr := tmpl.Execute(inPipe, cassandraConfig); nil != renderErr {
-			panic(renderErr.Error())
-		}
-		inPipe.Close()
-	}()
+	if startErr := cqlshCmd.Start(); nil != startErr {
+		panic(startErr.Error())
+	}
 
-	if output, runErr := cqlshCmd.CombinedOutput(); nil != runErr {
-		println(string(output))
-		panic(runErr.Error())
+	data := struct {
+		Keyspace string
+		Id       gocql.UUID
+	}{
+		Keyspace: cassandraConfig.Keyspace,
+		Id:       suite.id,
+	}
+
+	if renderErr := tmpl.Execute(inPipe, data); nil != renderErr {
+		panic(renderErr.Error())
+	}
+	inPipe.Close()
+
+	if waitErr := cqlshCmd.Wait(); nil != waitErr {
+		panic(waitErr.Error())
 	}
 }
 
@@ -84,13 +97,21 @@ func (suite *ExamplesSuite) TestInstanceMapper_SelectQuery() {
 	exampleTable := &ExampleTable{}
 	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(exampleTable)
 
-	query := suite.session.Query(mapper.SelectQuery())
+	query := suite.session.Query(
+		fmt.Sprintf(
+			"%s WHERE id = ?",
+			mapper.SelectQuery(),
+		),
+		suite.id,
+	)
 
 	if scanErr := query.Scan(mapper.FieldAddresses()...); nil != scanErr {
 		panic(scanErr.Error())
 	}
 
+	assert.Equal(suite.T(), suite.id, exampleTable.Id)
 	assert.Equal(suite.T(), "Test", exampleTable.Value)
+	assert.Equal(suite.T(), 123, exampleTable.Value2)
 }
 
 func (suite *ExamplesSuite) TestInstanceMapper_InsertQuery() {
