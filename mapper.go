@@ -35,7 +35,6 @@ func typeFieldNames(valueType reflect.Type) []string {
 	fieldNames := make([]string, 0)
 	for fieldIndex := 0; fieldIndex < valueType.NumField(); fieldIndex++ {
 		field := valueType.Field(fieldIndex)
-		println(field.Type.Name())
 		if field.Type.Name() == field.Name {
 			fieldNames = append(fieldNames, typeFieldNames(field.Type)...)
 		} else {
