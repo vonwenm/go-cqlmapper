@@ -78,7 +78,11 @@ func (mapper *InstanceMapper) FieldValues() []interface{} {
 
 	for fieldIndex, fieldName := range fieldNames {
 		field := mapper.elem.FieldByName(fieldName)
-		fieldValues[fieldIndex] = field.Interface()
+		if field.Kind() == reflect.Ptr && field.IsNil() {
+			fieldValues[fieldIndex] = nil
+		} else {
+			fieldValues[fieldIndex] = field.Interface()
+		}
 	}
 
 	return fieldValues

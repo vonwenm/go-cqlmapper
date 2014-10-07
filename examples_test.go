@@ -26,8 +26,8 @@ var upTemplate = template.Must(template.New("up").Parse(`
 DROP KEYSPACE IF EXISTS {{.Keyspace}};
 CREATE KEYSPACE IF NOT EXISTS {{.Keyspace}} WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
 USE {{.Keyspace}};
-CREATE TABLE IF NOT EXISTS example_table(id UUID, value TEXT, value2 INT, PRIMARY KEY(id));
-INSERT INTO example_table(id, value, value2) VALUES({{.Id}}, 'Test', 123);
+CREATE TABLE IF NOT EXISTS example_table(id UUID, value TEXT, value2 INT, value3 int, PRIMARY KEY(id));
+INSERT INTO example_table(id, value, value2, value3) VALUES({{.Id}}, 'Test', 123, null);
 `))
 
 var downTempalate = template.Must(template.New("down").Parse(`
@@ -37,7 +37,8 @@ DROP KEYSPACE IF EXISTS {{.Keyspace}};
 type ExampleTable struct {
 	Id     gocql.UUID
 	Value  string
-	Value2 int
+	Value2 *int
+	Value3 *uint
 }
 
 type ExamplesSuite struct {
@@ -111,12 +112,16 @@ func (suite *ExamplesSuite) TestInstanceMapper_SelectQuery() {
 
 	assert.Equal(suite.T(), suite.id, exampleTable.Id)
 	assert.Equal(suite.T(), "Test", exampleTable.Value)
-	assert.Equal(suite.T(), 123, exampleTable.Value2)
+	if assert.NotNil(suite.T(), exampleTable.Value2) {
+		assert.Equal(suite.T(), 123, *exampleTable.Value2)
+	}
+	assert.Nil(suite.T(), exampleTable.Value3)
 }
 
 func (suite *ExamplesSuite) TestInstanceMapper_InsertQuery() {
 	exampleTable := &ExampleTable{
-		Id: gocql.TimeUUID(),
+		Id:    gocql.TimeUUID(),
+		Value: "NewValue",
 	}
 
 	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(exampleTable)
@@ -126,6 +131,7 @@ func (suite *ExamplesSuite) TestInstanceMapper_InsertQuery() {
 	if execErr := insertQuery.Exec(); nil != execErr {
 		panic(execErr.Error())
 	}
+
 }
 
 func TestExamples(t *testing.T) {
