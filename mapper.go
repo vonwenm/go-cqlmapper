@@ -14,6 +14,10 @@ type InstanceMapper struct {
 	elem reflect.Value
 }
 
+type TableNameable interface {
+	TableName() string
+}
+
 func (builder *MapperBuilder) NewInstanceMapper(instance interface{}) (*InstanceMapper, error) {
 	value := reflect.ValueOf(instance)
 	if value.Kind() != reflect.Ptr || value.Elem().Kind() != reflect.Struct {
@@ -51,7 +55,11 @@ func (mapper *InstanceMapper) fieldNames() []string {
 }
 
 func (mapper *InstanceMapper) TableName() string {
-	return mapper.TableNameConverter(mapper.typeName())
+	if tableNameable, ok := mapper.elem.Addr().Interface().(TableNameable); ok {
+		return tableNameable.TableName()
+	} else {
+		return mapper.TableNameConverter(mapper.typeName())
+	}
 }
 
 func (mapper *InstanceMapper) ColumnNames() []string {

@@ -55,6 +55,23 @@ func (suite *InstanceMapperTestSuite) TestFields() {
 	assert.Equal(suite.T(), []interface{}{&myTable.Id, &myTable.Value}, mapper.FieldAddresses())
 }
 
+type RenamedTable struct {
+}
+
+func (*RenamedTable) TableName() string {
+	return "new_table"
+}
+
+func (suite *InstanceMapperTestSuite) TestInstanceMapper_TableName() {
+	myTable := new(MyTable)
+	myMapper, _ := cqlmapper.Underscore.NewInstanceMapper(myTable)
+	suite.Assertions.Equal("my_table", myMapper.TableName())
+
+	renamedTable := new(RenamedTable)
+	newMapper, _ := cqlmapper.Underscore.NewInstanceMapper(renamedTable)
+	suite.Assertions.Equal("new_table", newMapper.TableName())
+}
+
 func TestInstanceMapper(t *testing.T) {
 	suite.Run(t, new(InstanceMapperTestSuite))
 }
