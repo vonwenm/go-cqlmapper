@@ -18,6 +18,10 @@ type TableNameable interface {
 	TableName() string
 }
 
+func quote(value string) string {
+	return fmt.Sprintf(`"%s"`, value)
+}
+
 func (builder *MapperBuilder) NewInstanceMapper(instance interface{}) (*InstanceMapper, error) {
 	value := reflect.ValueOf(instance)
 	if value.Kind() != reflect.Ptr || value.Elem().Kind() != reflect.Struct {
@@ -55,11 +59,15 @@ func (mapper *InstanceMapper) fieldNames() []string {
 }
 
 func (mapper *InstanceMapper) TableName() string {
+	var tableName string
+
 	if tableNameable, ok := mapper.elem.Addr().Interface().(TableNameable); ok {
-		return tableNameable.TableName()
+		tableName = tableNameable.TableName()
 	} else {
-		return mapper.TableNameConverter(mapper.typeName())
+		tableName = mapper.TableNameConverter(mapper.typeName())
 	}
+
+	return quote(tableName)
 }
 
 func (mapper *InstanceMapper) ColumnNames() []string {
@@ -70,11 +78,11 @@ func (mapper *InstanceMapper) ColumnNames() []string {
 
 	for fieldIndex, fieldName := range fieldNames {
 		field := valueType.Field(fieldIndex)
-		if columnName := field.Tag.Get(mapper.ColumnNameTag); "" != columnName {
-			columnNames[fieldIndex] = columnName
-		} else {
-			columnNames[fieldIndex] = mapper.ColumnNameConverter(fieldName)
+		columnName := field.Tag.Get(mapper.ColumnNameTag)
+		if "" == columnName {
+			columnName = mapper.ColumnNameConverter(fieldName)
 		}
+		columnNames[fieldIndex] = quote(columnName)
 	}
 
 	return columnNames

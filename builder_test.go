@@ -19,8 +19,8 @@ func TestDefaultRaw(t *testing.T) {
 	rawMapper, mapperErr := cqlmapper.Default.NewInstanceMapper(rawStruct)
 
 	assert.Nil(t, mapperErr)
-	assert.Equal(t, "RawStruct", rawMapper.TableName())
-	assert.Equal(t, []string{"Id", "Value"}, rawMapper.ColumnNames())
+	assert.Equal(t, `"RawStruct"`, rawMapper.TableName())
+	assert.Equal(t, []string{`"Id"`, `"Value"`}, rawMapper.ColumnNames())
 }
 
 type TaggedStruct struct {
@@ -34,7 +34,7 @@ func TestDefaultTagged(t *testing.T) {
 	taggedMapper, mapperErr := cqlmapper.Default.NewInstanceMapper(taggedStruct)
 
 	assert.Nil(t, mapperErr)
-	assert.Equal(t, []string{"id", "value"}, taggedMapper.ColumnNames())
+	assert.Equal(t, []string{`"id"`, `"value"`}, taggedMapper.ColumnNames())
 }
 
 type UnderscoreStruct struct {
@@ -48,6 +48,6 @@ func TestUnderscore(t *testing.T) {
 	underscoreMapper, mapperErr := cqlmapper.Underscore.NewInstanceMapper(underscoreStruct)
 
 	assert.Nil(t, mapperErr)
-	assert.Equal(t, "underscore_struct", underscoreMapper.TableName())
-	assert.Equal(t, []string{"id", "value"}, underscoreMapper.ColumnNames())
+	assert.Equal(t, `"underscore_struct"`, underscoreMapper.TableName())
+	assert.Equal(t, []string{`"id"`, `"value"`}, underscoreMapper.ColumnNames())
 }

@@ -36,7 +36,7 @@ func (suite *InstanceMapperTestSuite) TestSelectQuery() {
 	myTable := &MyTable{}
 	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(myTable)
 
-	assert.Equal(suite.T(), "SELECT id, value FROM my_table", mapper.SelectQuery())
+	assert.Equal(suite.T(), `SELECT "id", "value" FROM "my_table"`, mapper.SelectQuery())
 }
 
 func (suite *InstanceMapperTestSuite) TestInsertQuery() {
@@ -44,7 +44,7 @@ func (suite *InstanceMapperTestSuite) TestInsertQuery() {
 
 	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(myTable)
 
-	assert.Equal(suite.T(), "INSERT INTO my_table (id, value) VALUES(?, ?)", mapper.InsertQuery())
+	assert.Equal(suite.T(), `INSERT INTO "my_table" ("id", "value") VALUES(?, ?)`, mapper.InsertQuery())
 }
 
 func (suite *InstanceMapperTestSuite) TestFields() {
@@ -65,11 +65,11 @@ func (*RenamedTable) TableName() string {
 func (suite *InstanceMapperTestSuite) TestInstanceMapper_TableName() {
 	myTable := new(MyTable)
 	myMapper, _ := cqlmapper.Underscore.NewInstanceMapper(myTable)
-	suite.Assertions.Equal("my_table", myMapper.TableName())
+	suite.Assertions.Equal(`"my_table"`, myMapper.TableName())
 
 	renamedTable := new(RenamedTable)
 	newMapper, _ := cqlmapper.Underscore.NewInstanceMapper(renamedTable)
-	suite.Assertions.Equal("new_table", newMapper.TableName())
+	suite.Assertions.Equal(`"new_table"`, newMapper.TableName())
 }
 
 func TestInstanceMapper(t *testing.T) {
@@ -92,7 +92,7 @@ func (suite *InstanceMapperTestSuite) TestFieldEmbedding() {
 		suite.T().Error(mapperErr)
 	}
 
-	assert.Equal(suite.T(), []string{"inner", "outer"}, mapper.ColumnNames())
+	assert.Equal(suite.T(), []string{`"inner"`, `"outer"`}, mapper.ColumnNames())
 	assert.Equal(suite.T(), []interface{}{outerStruct.Inner, outerStruct.Outer}, mapper.FieldValues())
 	assert.Equal(suite.T(), []interface{}{&outerStruct.Inner, &outerStruct.Outer}, mapper.FieldAddresses())
 }
