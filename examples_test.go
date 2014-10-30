@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/gocql/gocql"
+	"github.com/probkiizokna/gocql"
 
 	cqlmapper "."
 )
