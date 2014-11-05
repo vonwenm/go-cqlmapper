@@ -136,3 +136,16 @@ func (mapper *InstanceMapper) InsertQuery() string {
 		strings.Join(placeholders, ", "),
 	)
 }
+
+func (mapper *InstanceMapper) DeleteQuery(pkColumnNames ...string) string {
+	conditions := make([]string, len(pkColumnNames))
+	for index, pkColumnName := range pkColumnNames {
+		conditions[index] = fmt.Sprintf("%s = ?", quote(pkColumnName))
+	}
+
+	return fmt.Sprintf(
+		`DELETE FROM %s WHERE %s`,
+		mapper.TableName(),
+		strings.Join(conditions, " AND "),
+	)
+}

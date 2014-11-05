@@ -47,6 +47,21 @@ func (suite *InstanceMapperTestSuite) TestInsertQuery() {
 	assert.Equal(suite.T(), `INSERT INTO "my_table" ("id", "value") VALUES(?, ?)`, mapper.InsertQuery())
 }
 
+func (suite *InstanceMapperTestSuite) TestDeleteQuery() {
+	myTable := &MyTable{}
+
+	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(myTable)
+
+	suite.Assertions.Equal(
+		`DELETE FROM "my_table" WHERE "id" = ?`,
+		mapper.DeleteQuery("id"),
+	)
+	suite.Assertions.Equal(
+		`DELETE FROM "my_table" WHERE "id" = ? AND "value" = ?`,
+		mapper.DeleteQuery("id", "value"),
+	)
+}
+
 func (suite *InstanceMapperTestSuite) TestFields() {
 	myTable := &MyTable{}
 	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(myTable)
