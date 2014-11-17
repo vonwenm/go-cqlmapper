@@ -37,6 +37,8 @@ func (suite *InstanceMapperTestSuite) TestSelectQuery() {
 	mapper, _ := cqlmapper.Underscore.NewInstanceMapper(myTable)
 
 	assert.Equal(suite.T(), `SELECT "id", "value" FROM "my_table"`, mapper.SelectQuery())
+	assert.Equal(suite.T(), `SELECT "id", "value" FROM "my_table" WHERE "id" = ?`, mapper.SelectQuery("id"))
+	assert.Equal(suite.T(), `SELECT "id", "value" FROM "my_table" WHERE "id" = ? AND "value" = ?`, mapper.SelectQuery("id", "value"))
 }
 
 func (suite *InstanceMapperTestSuite) TestInsertQuery() {

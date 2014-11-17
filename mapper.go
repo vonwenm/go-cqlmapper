@@ -116,12 +116,20 @@ func (mapper *InstanceMapper) FieldAddresses() []interface{} {
 	return fieldAddresses
 }
 
-func (mapper *InstanceMapper) SelectQuery() string {
-	return fmt.Sprintf(
+func (mapper *InstanceMapper) SelectQuery(whereColumns ...string) string {
+	query := fmt.Sprintf(
 		"SELECT %s FROM %s",
 		strings.Join(mapper.ColumnNames(), ", "),
 		mapper.TableName(),
 	)
+	if len(whereColumns) > 0 {
+		whereParts := make([]string, len(whereColumns))
+		for index, whereColumn := range whereColumns {
+			whereParts[index] = fmt.Sprintf("%s = ?", quote(whereColumn))
+		}
+		query = fmt.Sprintf("%s WHERE %s", query, strings.Join(whereParts, " AND "))
+	}
+	return query
 }
 
 func (mapper *InstanceMapper) InsertQuery() string {
