@@ -161,3 +161,11 @@ func (mapper *InstanceMapper) DeleteQuery(pkColumnNames ...string) string {
 		strings.Join(conditions, " AND "),
 	)
 }
+
+func (mapper *InstanceMapper) CountQuery(whereColumns ...string) string {
+	query := fmt.Sprintf("SELECT count(1) FROM %s", mapper.TableName())
+	if len(whereColumns) > 0 {
+		query = fmt.Sprintf("%s WHERE %s", query, mapper.whereConditions(whereColumns))
+	}
+	return query
+}
