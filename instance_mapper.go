@@ -149,6 +149,54 @@ func (mapper *InstanceMapper) InsertQuery() string {
 	)
 }
 
+func (mapper *InstanceMapper) isPkColumnName(
+	pkColumnNames []string,
+	columnName string,
+) bool {
+	for _, pkColumnName := range pkColumnNames {
+		if quote(pkColumnName) == columnName {
+			return true
+		}
+	}
+	return false
+}
+
+func (mapper *InstanceMapper) UpdateQuery(pkColumnNames ...string) string {
+	setLength := len(mapper.ColumnNames()) - len(pkColumnNames)
+	setPlaceholders := make([]string, 0, setLength)
+
+	for _, columnName := range mapper.ColumnNames() {
+		if !mapper.isPkColumnName(pkColumnNames, columnName) {
+			setPart := fmt.Sprintf("%s = ?", columnName)
+			setPlaceholders = append(setPlaceholders, setPart)
+		}
+	}
+
+	return fmt.Sprintf(
+		"UPDATE %s SET %s WHERE %s",
+		mapper.TableName(),
+		strings.Join(setPlaceholders, ", "),
+		mapper.whereConditions(pkColumnNames),
+	)
+}
+
+func (mapper *InstanceMapper) UpdateArguments(
+	arguments []interface{},
+	pkColumnNames ...string,
+) []interface{} {
+	setLength := len(mapper.ColumnNames()) - len(pkColumnNames)
+	filteredArguments := make([]interface{}, 0, setLength)
+
+	for columnIndex, columnName := range mapper.ColumnNames() {
+		if !mapper.isPkColumnName(pkColumnNames, columnName) {
+			argument := arguments[columnIndex]
+			filteredArguments = append(filteredArguments, argument)
+		}
+	}
+
+	return filteredArguments
+}
+
 func (mapper *InstanceMapper) DeleteQuery(pkColumnNames ...string) string {
 	conditions := make([]string, len(pkColumnNames))
 	for index, pkColumnName := range pkColumnNames {
