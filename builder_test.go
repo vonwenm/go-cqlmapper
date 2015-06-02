@@ -24,8 +24,8 @@ func TestDefaultRaw(t *testing.T) {
 }
 
 type TaggedStruct struct {
-	Id    uint   `cqlm:"id"`
-	Value string `cqlm:"value"`
+	Id    uint   `cqlm:"id_"`
+	Value string `cqlm:"value_"`
 }
 
 func TestDefaultTagged(t *testing.T) {
@@ -34,7 +34,7 @@ func TestDefaultTagged(t *testing.T) {
 	taggedMapper, mapperErr := cqlmapper.Default.NewInstanceMapper(taggedStruct)
 
 	assert.Nil(t, mapperErr)
-	assert.Equal(t, []string{`"id"`, `"value"`}, taggedMapper.ColumnNames())
+	assert.Equal(t, []string{`"id_"`, `"value_"`}, taggedMapper.ColumnNames())
 }
 
 type UnderscoreStruct struct {
